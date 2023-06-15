@@ -1,0 +1,40 @@
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+        <param name="atlassian-licensing-enabled">true</param>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="helloworld"/>
+    
+    <!-- add our web resources -->
+    <web-resource key="helloworld-resources" name="helloworld Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        
+        <resource type="download" name="helloworld.css" location="/css/helloworld.css"/>
+        <resource type="download" name="helloworld.js" location="/js/helloworld.js"/>
+        <resource type="download" name="images/" location="/images"/>
+        <context>atl.general</context>
+    </web-resource>
+
+    <servlet name="HelloWorldServlet" i18n-name-key="helloworld-servlet.name" key="helloworld-servlet" class="helloworld.helloworld.HelloWorldServlet">
+        <description>A simple HelloWorld servlet</description>
+        <url-pattern>/helloworld</url-pattern>
+    </servlet>
+
+    <web-panel key="google-panel" name="Google Panel" location="atl.jira.view.issue.left.context" >
+        <context-provider class="helloworld.helloworld.GoogleButtonModule" />
+        <resource name="view" type="velocity" location="templates/google-panel.vm"/>
+        <!--<resource name="view" type="static"><![CDATA[<b>Hello World!</b>]]></resource>-->
+    </web-panel>
+
+    <customfield-type name="Money Custom Field" i18n-name-key="money-custom-field.name" key="money-custom-field" class="helloworld.helloworld.MoneyCustomField">
+        <description key="money-custom-field.description">The Money Custom Field Plugin</description>
+        <resource name="view" type="velocity" location="templates/fields/view.vm"/>
+        <resource name="edit" type="velocity" location="templates/fields/edit.vm"/>
+    </customfield-type>
+</atlassian-plugin>
