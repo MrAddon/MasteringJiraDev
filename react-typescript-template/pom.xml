@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>atlassian-plugin</packaging>
+
+    <groupId>com.example</groupId>
+    <artifactId>helloworld</artifactId>
+    <version>0.0.1</version>
+    <organization>
+        <name>TecnoFor</name>
+        <url>https://tecnofor.es</url>
+    </organization>
+    <name>Hello World React Typescript Example Plugin</name>
+    <description>Hello World React Typescript Example Plugin.</description>
+
+    <properties>
+        <!-- Plugin key: This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
+        <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
+
+        <!-- JIRA version-->
+        <jira.version>9.4.0</jira.version>
+        <jira.data.version>${jira.version}</jira.data.version>
+
+
+        <!-- Atlassian AMPS version -->
+        <amps.version>8.10.1</amps.version>
+
+        <!-- Internal application components -->
+        <spring.version>5.3.25</spring.version>
+        <atlassian.spring.scanner.version>3.0.2</atlassian.spring.scanner.version>
+
+        <!-- Default hostname & port for Atlassian product -->
+        <jira.host>localhost</jira.host>
+        <jira.port>2990</jira.port>
+
+        <!-- Plugins developers versions -->
+        <rest-api-browser.version>3.2.3</rest-api-browser.version>
+        <exec.maven.plugin.version>3.1.0</exec.maven.plugin.version>
+
+        <!-- Project configuration-->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- JIRA -->
+        <!--suppress VulnerableLibrariesLocal -->
+        <dependency>
+            <groupId>com.atlassian.jira</groupId>
+            <artifactId>jira-api</artifactId>
+            <version>${jira.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--suppress VulnerableLibrariesLocal -->
+        <dependency>
+            <groupId>com.atlassian.jira</groupId>
+            <artifactId>jira-core</artifactId>
+            <version>${jira.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <!--suppress MavenPackageUpdate -->
+            <version>${spring.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.plugin</groupId>
+            <artifactId>atlassian-spring-scanner-annotation</artifactId>
+            <version>${atlassian.spring.scanner.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- External libraries -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.upm</groupId>
+            <artifactId>licensing-api</artifactId>
+            <version>2.21.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.upm</groupId>
+            <artifactId>upm-api</artifactId>
+            <version>2.21</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- Atlassian Compiler -->
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>jira-maven-plugin</artifactId>
+                <version>${amps.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <jvmArgs>-XX:+ExplicitGCInvokesConcurrent</jvmArgs>
+                    <systemPropertyVariables>
+                        <org.apache.jasper.runtime.BodyContentImpl.LIMIT_BUFFER>
+                            true
+                        </org.apache.jasper.runtime.BodyContentImpl.LIMIT_BUFFER>
+                        <mail.mime.decodeparameters>true</mail.mime.decodeparameters>
+                    </systemPropertyVariables>
+                    <productVersion>${jira.version}</productVersion>
+                    <enableQuickReload>true</enableQuickReload>
+                    <extractDependencies>false</extractDependencies>
+                    <allowGoogleTracking>false</allowGoogleTracking>
+
+                    <server>${jira.host}</server>
+                    <httpPort>${jira.port}</httpPort>
+
+                    <!-- See here for an explanation of default instructions: -->
+                    <!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
+                    <instructions>
+                        <Atlassian-Plugin-Key>${atlassian.plugin.key}</Atlassian-Plugin-Key>
+                        <!-- Seems that these package imports are not needed anymore with the new AMPS version, uncomment if you get errors building the plugin -->
+                        <!--<Import-Package> -->
+                        <!--   org.springframework.osgi.*;resolution:="optional", -->
+                        <!--   org.eclipse.gemini.blueprint.*;resolution:="optional", -->
+                        <!--   * -->
+                        <!--</Import-Package> -->
+                        <!-- Ensure plugin is spring powered -->
+                        <Spring-Context>*</Spring-Context>
+                        <!-- Scan for plugin descriptors bundled by frontend build -->
+                        <Atlassian-Scan-Folders>META-INF/plugin-descriptors</Atlassian-Scan-Folders>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+            <!-- Atlassian Spring Scanner -->
+            <plugin>
+                <groupId>com.atlassian.plugin</groupId>
+                <artifactId>atlassian-spring-scanner-maven-plugin</artifactId>
+                <version>${atlassian.spring.scanner.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>atlassian-spring-scanner</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Frontend Compiler -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>process-static-resources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <workingDirectory>.</workingDirectory>
+                            <executable>pnpm</executable>
+                            <arguments>
+                                <argument>build</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Frontend watch profile (enables HMR) -->
+    <profiles>
+        <profile>
+            <id>frontend-watch</id>
+            <activation>
+                <property>
+                    <name>frontend-watch</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>process-static-resources</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>.</workingDirectory>
+                                    <executable>pnpm</executable>
+                                    <arguments>
+                                        <argument>run</argument>
+                                        <argument>watch:prepare</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Profile to disable backup of data directory -->
+        <profile>
+            <id>no-backup</id>
+            <properties>
+                <jira.product.data.path/>
+            </properties>
+        </profile>
+    </profiles>
+</project>
