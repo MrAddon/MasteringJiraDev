@@ -1,0 +1,69 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+        <param name="atlassian-data-center-compatible">true</param>
+        <param name="atlassian-data-center-status">compatible</param>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="my-project-template"/>
+    
+    <!-- add our web resources -->
+    <web-resource key="my-project-template-resources" name="my-project-template Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+
+        <transformation extension="soy">
+            <transformer key="soyTransformer"/>
+        </transformation>
+
+        <resource type="download" name="MyProjectTemplate.soy.js" location="/soy/MyProjectTemplate.soy"/>
+		<resource type="download" name="HRProjectTemplate.soy.js" location="/soy/HRProjectTemplate.soy"/>
+
+        <resource type="download" name="images/" location="/images">
+            <param name="content-type" value="image/png; charset=binary"/>
+        </resource>
+
+        <context>atl.general</context>
+        <context>atl.admin</context>
+    </web-resource>
+
+    <project-blueprint key="my-project-template" weight="90">
+        <label key="my.project.template.name"/>
+		<projectTypeKey>business</projectTypeKey>
+        <description key="my.project.template.description"/>
+        <longDescription key="my.project.template.description.long"/>
+
+        <infoPage soy-template="JIRA.Templates.ProjectTemplates.Tutorial.renderMyProjectTemplateExplanation" />
+
+        <icon location="images/my-template-icon.png"/>
+        <backgroundIcon location="images/my-template-background.png"/>
+
+        <add-project>
+            <hook class="com.rauliki.standaloneProjectTemplate.MyAddProjectHook"/>
+            <descriptor file="/config/my-project-template-config.json"/>
+        </add-project>
+    </project-blueprint>
+	
+	
+	<project-blueprint key="hr-project-template" weight="90">
+        <label key="hr.project.template.name"/>
+		<projectTypeKey>business</projectTypeKey>
+        <description key="hr.project.template.description"/>
+        <longDescription key="hr.project.template.description.long"/>
+
+        <infoPage soy-template="JIRA.Templates.ProjectTemplates.Tutorial.renderMyProjectTemplateExplanation" />
+
+        <icon location="images/hr-template-icon.png"/>
+        <backgroundIcon location="images/hr-template-background.png"/>
+
+        <add-project>
+            <hook class="com.rauliki.standaloneProjectTemplate.HRAddProjectHook"/>
+            <descriptor file="/config/hr-project-template-config.json"/>
+        </add-project>
+    </project-blueprint>
+    
+</atlassian-plugin>

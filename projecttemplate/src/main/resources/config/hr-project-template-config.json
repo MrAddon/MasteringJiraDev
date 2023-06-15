@@ -1,0 +1,29 @@
+{
+    "issue-type-scheme":
+    {
+        "name": "hr.project.template.issuetype.scheme.name",
+        "description": "hr.project.template.issuetype.scheme.description",
+        "issue-types": [
+            {
+                "key": "issueType1",
+                "name": "Story",
+                "description": "User Story",
+                "icon": "/images/icons/story.png",
+                "workflow": "wf1"
+            }
+        ]
+    },
+    "workflow-scheme":
+    {
+        "name": "hr.project.template.workflow.scheme.name",
+        "description": "hr.project.template.workflow.scheme.description",
+        "default-workflow": "wf1",
+        "workflows": [
+            {
+                "key": "wf1",
+                "name": "hr.project.template.workflow.wf1.name",
+                "workflow-bundle": "/wfb/HR-Project-Template.jwb"
+            }
+        ]
+    }
+}
