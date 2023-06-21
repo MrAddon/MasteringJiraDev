@@ -1,0 +1,58 @@
+{
+    "issue-type-scheme":
+    {
+        "name": "assetcreation.project.template.issuetype.scheme.name",
+        "description": "assetcreation.project.template.issuetype.scheme.description",
+        "issue-types": [
+            {
+                "key": "issueType1",
+                "name": "Sub-task",
+                "description": "Sub-task",
+                "icon": "/images/icons/sub-task.png",
+				"sub-task": true,
+                "workflow": "wf2"
+            },
+			
+			{
+                "key": "issueType2",
+                "name": "Task",
+                "description": "Task",
+                "icon": "/images/icons/task.png",
+                "workflow": "wf1"
+            },
+			
+			{
+                "key": "issueType3",
+                "name": "Asset",
+                "description": "Asset",
+                "icon": "/images/icons/asset.png",
+                "workflow": "wf1"
+            }
+			
+        ]
+		
+    },
+	
+    "workflow-scheme":
+    {
+        "name": "assetcreation.project.template.workflow.scheme.name",
+        "description": "assetcreation.project.template.workflow.scheme.description",
+        "default-workflow": "wf1",
+        "workflows": [
+            {
+                "key": "wf1",
+                "name": "assetcreation.project.template.workflow.wf1.name",
+                "workflow-bundle": "/wfb/AC--Asset-creation-default-workflow.jwb"
+            },
+			
+			{
+                "key": "wf2",
+                "name": "assetcreation.project.template.workflow.wf2.name",
+                "workflow-bundle": "/wfb/AC--Asset-creation-sub-task-workflow.jwb"
+            }
+			
+        ]
+		
+    }
+	
+}

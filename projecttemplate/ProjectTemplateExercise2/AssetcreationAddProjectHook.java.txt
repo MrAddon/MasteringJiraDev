@@ -1,0 +1,377 @@
+package com.tecnofor.jira.standaloneprojecttemplate.plugins.tutorial;
+
+import com.atlassian.jira.issue.search.SearchRequestManager;
+import com.atlassian.jira.project.template.hook.AddProjectHook;
+import com.atlassian.jira.project.template.hook.*;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import com.atlassian.jira.config.ConstantsManager;
+import com.atlassian.jira.component.ComponentAccessor;
+
+import com.atlassian.jira.issue.fields.layout.field.*;
+import com.atlassian.jira.issue.fields.screen.*;
+import com.atlassian.jira.issue.fields.screen.issuetype.*;
+import com.atlassian.jira.issue.issuetype.IssueType;
+import com.atlassian.jira.issue.IssueFieldConstants;
+import com.atlassian.jira.permission.PermissionSchemeManager;
+import com.atlassian.jira.project.Project;
+import com.atlassian.jira.scheme.Scheme;
+import org.ofbiz.core.entity.GenericValue;
+
+import com.atlassian.jira.bc.*;
+import com.atlassian.jira.bc.filter.*;
+import com.atlassian.jira.jql.builder.JqlQueryBuilder;
+import com.atlassian.query.*;
+import com.atlassian.jira.issue.search.SearchRequest;
+import com.atlassian.jira.sharing.SharedEntity.*;
+import com.atlassian.jira.sharing.*;
+import com.atlassian.jira.sharing.type.*;
+import java.util.Set;
+import java.util.HashSet;
+import com.atlassian.jira.user.ApplicationUser;
+
+import java.util.Collection;
+import java.util.Iterator;
+import com.atlassian.jira.config.IssueTypeManager;
+
+import com.atlassian.jira.issue.fields.OrderableField;
+import com.atlassian.jira.issue.fields.FieldManager;
+
+import com.atlassian.jira.issue.fields.screen.FieldScreenImpl;
+
+import com.atlassian.sal.api.net.TrustedRequest;
+import com.atlassian.sal.api.net.TrustedRequestFactory;
+import com.atlassian.sal.api.ApplicationProperties;
+import com.atlassian.sal.api.net.ResponseException;
+
+import java.net.MalformedURLException;
+
+import com.atlassian.jira.util.json.JSONException;
+import com.atlassian.jira.util.json.JSONObject;
+
+import java.net.URL;
+
+
+public class AssetcreationAddProjectHook implements AddProjectHook
+{
+	
+	private static final Logger LOGGER = LogManager.getLogger(AssetcreationAddProjectHook.class);
+	private final TrustedRequestFactory trustedRequestFactory = ComponentAccessor.getOSGiComponentInstanceOfType(TrustedRequestFactory.class);
+	private final ApplicationProperties applicationProperties = ComponentAccessor.getComponent(ApplicationProperties.class);
+	
+    @Override
+    public ValidateResponse validate(final ValidateData validateData)
+    {
+        return ValidateResponse.create();
+    }
+
+
+    @Override
+    public ConfigureResponse configure(final ConfigureData configureData)
+    {
+		
+		Project project = configureData.project();
+		ConstantsManager constantsManager = ComponentAccessor.getConstantsManager();
+		String template_name = "Asset Creation";
+		String template_new_name = project.getKey() + ":" + template_name;
+		
+		
+		PermissionSchemeManager permissionSchemeManager = ComponentAccessor.getPermissionSchemeManager();
+		Scheme permissionScheme = permissionSchemeManager.getSchemeObject(template_name);
+        if (permissionScheme != null) {
+			Scheme permissionSchemeNew = permissionSchemeManager.copyScheme(permissionScheme);
+			permissionSchemeNew.setName(template_new_name);
+			permissionSchemeManager.updateScheme(permissionSchemeNew);
+            permissionSchemeManager.removeSchemesFromProject(project);
+            permissionSchemeManager.addSchemeToProject(project, permissionSchemeNew);
+        }
+
+		FieldLayoutManager fieldLayoutManager = ComponentAccessor.getFieldLayoutManager();
+        EditableDefaultFieldLayout defaultFieldLayout = fieldLayoutManager.getEditableDefaultFieldLayout();
+		
+		EditableFieldLayout editableFieldLayout = new EditableFieldLayoutImpl(null, defaultFieldLayout.getFieldLayoutItems());
+        editableFieldLayout.setName(template_new_name);
+        editableFieldLayout.setDescription(template_new_name);
+		FieldLayout myFieldLayout = fieldLayoutManager.storeAndReturnEditableFieldLayout(editableFieldLayout);
+		
+		FieldLayoutScheme fieldLayoutScheme = new FieldLayoutSchemeImpl(fieldLayoutManager, null);
+        fieldLayoutScheme.setName(template_new_name);
+        fieldLayoutScheme.setDescription(template_new_name);
+		fieldLayoutScheme.store();
+		
+		
+		FieldLayoutSchemeEntity fieldLayoutSchemeEntity = new FieldLayoutSchemeEntityImpl(fieldLayoutManager, null, constantsManager);
+        fieldLayoutSchemeEntity.setIssueTypeId(null); 
+        fieldLayoutSchemeEntity.setFieldLayoutId(myFieldLayout.getId());
+
+		fieldLayoutScheme = null;
+        for (FieldLayoutScheme scheme : fieldLayoutManager.getFieldLayoutSchemes()) {
+            if (scheme.getName().equals(template_new_name)) {
+                fieldLayoutScheme = scheme;
+                break;
+            }
+        }
+
+		fieldLayoutScheme.addEntity(fieldLayoutSchemeEntity);
+		fieldLayoutManager.addSchemeAssociation(project, fieldLayoutScheme.getId());
+
+		FieldScreenManager fieldScreenManager = ComponentAccessor.getFieldScreenManager();
+		FieldScreen fieldScreen =  new FieldScreenImpl(fieldScreenManager);
+		fieldScreen.setName(template_new_name);
+		fieldScreen.setDescription(template_new_name);
+		fieldScreen.store();		
+		
+		FieldScreenTab defaultTab = fieldScreen.addTab("Details");
+		
+		FieldManager fieldManager = ComponentAccessor.getFieldManager();
+		OrderableField myField = fieldManager.getOrderableField("summary");
+		defaultTab.addFieldScreenLayoutItem(myField.getId());
+		OrderableField myField2 = fieldManager.getOrderableField("description");
+		defaultTab.addFieldScreenLayoutItem(myField2.getId());
+		OrderableField myField3 = fieldManager.getOrderableField("issuetype");
+		defaultTab.addFieldScreenLayoutItem(myField3.getId());
+		OrderableField myField4 = fieldManager.getOrderableField("reporter");
+		defaultTab.addFieldScreenLayoutItem(myField4.getId());
+		OrderableField myField5 = fieldManager.getOrderableField("assignee");
+		defaultTab.addFieldScreenLayoutItem(myField5.getId());
+		OrderableField myField6 = fieldManager.getOrderableField(IssueFieldConstants.TIMETRACKING);
+		defaultTab.addFieldScreenLayoutItem(myField6.getId());
+		OrderableField myField7 = fieldManager.getOrderableField("duedate");
+		defaultTab.addFieldScreenLayoutItem(myField7.getId());
+		OrderableField myField8 = fieldManager.getOrderableField("labels");
+		defaultTab.addFieldScreenLayoutItem(myField8.getId());
+		OrderableField myField9 = fieldManager.getOrderableField("priority");
+		defaultTab.addFieldScreenLayoutItem(myField9.getId());
+		OrderableField myField10 = fieldManager.getOrderableField(IssueFieldConstants.COMPONENTS);
+		defaultTab.addFieldScreenLayoutItem(myField10.getId());
+		OrderableField myField11 = fieldManager.getOrderableField("attachment");
+		defaultTab.addFieldScreenLayoutItem(myField11.getId());
+		OrderableField myField12 = fieldManager.getOrderableField(IssueFieldConstants.SECURITY);
+		defaultTab.addFieldScreenLayoutItem(myField12.getId());
+		defaultTab.store();
+	
+		FieldScreenSchemeManager fieldScreenSchemeManager = ComponentAccessor.getComponent(FieldScreenSchemeManager.class);		
+		FieldScreenSchemeImpl fieldScreenScheme = new FieldScreenSchemeImpl(fieldScreenSchemeManager, null);
+        fieldScreenScheme.setName(template_new_name);
+        fieldScreenScheme.setDescription(template_new_name);
+        fieldScreenScheme.store();
+		
+        FieldScreenSchemeItemImpl fieldScreenSchemeItem = new FieldScreenSchemeItemImpl(fieldScreenSchemeManager, (GenericValue) null, fieldScreenManager);
+        fieldScreenSchemeItem.setIssueOperation(null);
+        fieldScreenSchemeItem.setFieldScreen(fieldScreenManager.getFieldScreen(fieldScreen.getId()));
+        
+        fieldScreenScheme.addFieldScreenSchemeItem(fieldScreenSchemeItem);
+		
+		fieldScreen =  new FieldScreenImpl(fieldScreenManager);
+		fieldScreen.setName(template_new_name + "-Asset");
+		fieldScreen.setDescription(template_new_name + "-Asset");
+		fieldScreen.store();
+		defaultTab = fieldScreen.addTab("Details");
+		defaultTab.addFieldScreenLayoutItem(myField.getId());
+		defaultTab.addFieldScreenLayoutItem(myField2.getId());
+		defaultTab.addFieldScreenLayoutItem(myField3.getId());
+		defaultTab.addFieldScreenLayoutItem(myField4.getId());
+		defaultTab.addFieldScreenLayoutItem(myField5.getId());
+		defaultTab.addFieldScreenLayoutItem(myField6.getId());
+		defaultTab.addFieldScreenLayoutItem(myField7.getId());
+		defaultTab.addFieldScreenLayoutItem(myField8.getId());
+		defaultTab.addFieldScreenLayoutItem(myField9.getId());
+		defaultTab.addFieldScreenLayoutItem(myField10.getId());
+		defaultTab.addFieldScreenLayoutItem(myField11.getId());
+		defaultTab.addFieldScreenLayoutItem(myField12.getId());
+		defaultTab.store();
+		FieldScreenSchemeImpl fieldScreenScheme2 = new FieldScreenSchemeImpl(fieldScreenSchemeManager, null);
+        fieldScreenScheme2.setName(template_new_name  + "-Asset");
+        fieldScreenScheme2.setDescription(template_new_name  + "-Asset");
+        fieldScreenScheme2.store();
+		fieldScreenSchemeItem = new FieldScreenSchemeItemImpl(fieldScreenSchemeManager, (GenericValue) null, fieldScreenManager);
+        fieldScreenSchemeItem.setIssueOperation(null);
+        fieldScreenSchemeItem.setFieldScreen(fieldScreenManager.getFieldScreen(fieldScreen.getId()));
+        fieldScreenScheme2.addFieldScreenSchemeItem(fieldScreenSchemeItem);
+		
+		
+		fieldScreen =  new FieldScreenImpl(fieldScreenManager);
+		fieldScreen.setName(template_new_name + "-Sub-task");
+		fieldScreen.setDescription(template_new_name + "-Sub-task");
+		fieldScreen.store();
+		defaultTab = fieldScreen.addTab("Details");
+		defaultTab.addFieldScreenLayoutItem(myField.getId());
+		defaultTab.addFieldScreenLayoutItem(myField2.getId());
+		defaultTab.addFieldScreenLayoutItem(myField3.getId());
+		defaultTab.addFieldScreenLayoutItem(myField4.getId());
+		defaultTab.addFieldScreenLayoutItem(myField5.getId());
+		defaultTab.addFieldScreenLayoutItem(myField6.getId());
+		defaultTab.addFieldScreenLayoutItem(myField7.getId());
+		defaultTab.addFieldScreenLayoutItem(myField8.getId());
+		defaultTab.addFieldScreenLayoutItem(myField9.getId());
+		defaultTab.addFieldScreenLayoutItem(myField10.getId());
+		defaultTab.addFieldScreenLayoutItem(myField11.getId());
+		defaultTab.addFieldScreenLayoutItem(myField12.getId());
+		defaultTab.store();
+		FieldScreenSchemeImpl fieldScreenScheme3 = new FieldScreenSchemeImpl(fieldScreenSchemeManager, null);
+        fieldScreenScheme3.setName(template_new_name  + "-Sub-task");
+        fieldScreenScheme3.setDescription(template_new_name  + "-Sub-task");
+        fieldScreenScheme3.store();
+		fieldScreenSchemeItem = new FieldScreenSchemeItemImpl(fieldScreenSchemeManager, (GenericValue) null, fieldScreenManager);
+        fieldScreenSchemeItem.setIssueOperation(null);
+        fieldScreenSchemeItem.setFieldScreen(fieldScreenManager.getFieldScreen(fieldScreen.getId()));
+        fieldScreenScheme3.addFieldScreenSchemeItem(fieldScreenSchemeItem);
+		
+		
+		fieldScreen =  new FieldScreenImpl(fieldScreenManager);
+		fieldScreen.setName(template_new_name + "-Task");
+		fieldScreen.setDescription(template_new_name + "-Task");
+		fieldScreen.store();
+		defaultTab = fieldScreen.addTab("Details");
+		defaultTab.addFieldScreenLayoutItem(myField.getId());
+		defaultTab.addFieldScreenLayoutItem(myField2.getId());
+		defaultTab.addFieldScreenLayoutItem(myField3.getId());
+		defaultTab.addFieldScreenLayoutItem(myField4.getId());
+		defaultTab.addFieldScreenLayoutItem(myField5.getId());
+		defaultTab.addFieldScreenLayoutItem(myField6.getId());
+		defaultTab.addFieldScreenLayoutItem(myField7.getId());
+		defaultTab.addFieldScreenLayoutItem(myField8.getId());
+		defaultTab.addFieldScreenLayoutItem(myField9.getId());
+		defaultTab.addFieldScreenLayoutItem(myField10.getId());
+		defaultTab.addFieldScreenLayoutItem(myField11.getId());
+		defaultTab.addFieldScreenLayoutItem(myField12.getId());
+		defaultTab.store();
+		FieldScreenSchemeImpl fieldScreenScheme4 = new FieldScreenSchemeImpl(fieldScreenSchemeManager, null);
+        fieldScreenScheme4.setName(template_new_name  + "-Task");
+        fieldScreenScheme4.setDescription(template_new_name  + "-Task");
+        fieldScreenScheme4.store();
+		fieldScreenSchemeItem = new FieldScreenSchemeItemImpl(fieldScreenSchemeManager, (GenericValue) null, fieldScreenManager);
+        fieldScreenSchemeItem.setIssueOperation(null);
+        fieldScreenSchemeItem.setFieldScreen(fieldScreenManager.getFieldScreen(fieldScreen.getId()));
+        fieldScreenScheme4.addFieldScreenSchemeItem(fieldScreenSchemeItem);
+		
+		IssueTypeScreenSchemeManager issueTypeScreenSchemeManager =  (IssueTypeScreenSchemeManager) ComponentAccessor.getComponent(IssueTypeScreenSchemeManager.class); 
+		IssueTypeScreenScheme issueTypeScreenScheme = new IssueTypeScreenSchemeImpl(issueTypeScreenSchemeManager, null);
+        issueTypeScreenScheme.setName(template_new_name);
+        issueTypeScreenScheme.setDescription(template_new_name);
+		java.lang.Object fieldTypeScreenScheme = null;
+        issueTypeScreenScheme.store();
+
+        IssueTypeScreenSchemeEntity issueTypeScreenSchemeEntity = new IssueTypeScreenSchemeEntityImpl(issueTypeScreenSchemeManager, (GenericValue) null, fieldScreenSchemeManager, constantsManager);
+        issueTypeScreenSchemeEntity.setIssueTypeId(null);
+        issueTypeScreenSchemeEntity.setFieldScreenScheme(fieldScreenSchemeManager.getFieldScreenScheme(fieldScreenScheme.getId()));
+        issueTypeScreenScheme.addEntity(issueTypeScreenSchemeEntity);
+		
+		IssueTypeManager issueTypeManager = ComponentAccessor.getComponent(IssueTypeManager.class); 
+		Collection<IssueType> allIssueTypes = issueTypeManager.getIssueTypes();
+
+		issueTypeScreenSchemeManager.addSchemeAssociation(project,issueTypeScreenScheme);
+		
+		String Asset = null;
+		String Subtask = null;
+		String Task = null;
+		
+		Iterator iterator = allIssueTypes.iterator();		
+		//LOGGER.error("BUSCANDO...:: ");
+		while(iterator.hasNext()){
+			IssueType issueType = (IssueType) iterator.next();
+			//LOGGER.error("Buscando en Issuetype:: "+ issueType.getName());
+			if ( issueType.getName().equals("Asset")) {
+				Asset = ""+new String(issueType.getId());
+				//LOGGER.error("Encontrado Issuetype Asset:: "+ Asset);
+			}
+			
+			if ( issueType.getName().equals("Sub-task")) {
+				Subtask =  ""+new String(issueType.getId());
+				//LOGGER.error("Encontrado Issuetype Sub-task:: "+ Subtask);
+			}
+			
+			if ( issueType.getName().equals("Task")) {
+				Task =  ""+new String(issueType.getId());
+				//LOGGER.error("Encontrado Issuetype Task:: "+ Task);
+			}
+			
+		}
+		
+		IssueTypeScreenSchemeEntity issueTypeScreenSchemeEntity1 = new IssueTypeScreenSchemeEntityImpl(issueTypeScreenSchemeManager, (GenericValue) null, fieldScreenSchemeManager, constantsManager);
+		issueTypeScreenSchemeEntity1.setIssueTypeId(Asset);
+		issueTypeScreenSchemeEntity1.setFieldScreenScheme(fieldScreenSchemeManager.getFieldScreenScheme(fieldScreenScheme.getId()));
+		
+		IssueTypeScreenSchemeEntity issueTypeScreenSchemeEntity2 = new IssueTypeScreenSchemeEntityImpl(issueTypeScreenSchemeManager, (GenericValue) null, fieldScreenSchemeManager, constantsManager);
+		issueTypeScreenSchemeEntity2.setIssueTypeId(Asset);
+		issueTypeScreenSchemeEntity2.setFieldScreenScheme(fieldScreenSchemeManager.getFieldScreenScheme(fieldScreenScheme2.getId()));
+		
+		IssueTypeScreenSchemeEntity issueTypeScreenSchemeEntity3 = new IssueTypeScreenSchemeEntityImpl(issueTypeScreenSchemeManager, (GenericValue) null, fieldScreenSchemeManager, constantsManager);
+		issueTypeScreenSchemeEntity3.setIssueTypeId(Subtask);
+		issueTypeScreenSchemeEntity3.setFieldScreenScheme(fieldScreenSchemeManager.getFieldScreenScheme(fieldScreenScheme3.getId()));
+		
+		IssueTypeScreenSchemeEntity issueTypeScreenSchemeEntity4 = new IssueTypeScreenSchemeEntityImpl(issueTypeScreenSchemeManager, (GenericValue) null, fieldScreenSchemeManager, constantsManager);
+		issueTypeScreenSchemeEntity4.setIssueTypeId(Task);
+		issueTypeScreenSchemeEntity4.setFieldScreenScheme(fieldScreenSchemeManager.getFieldScreenScheme(fieldScreenScheme4.getId()));
+		
+		issueTypeScreenScheme.addEntity(issueTypeScreenSchemeEntity);
+		issueTypeScreenScheme.addEntity(issueTypeScreenSchemeEntity1);
+		issueTypeScreenScheme.addEntity(issueTypeScreenSchemeEntity2);
+		issueTypeScreenScheme.addEntity(issueTypeScreenSchemeEntity3);
+		issueTypeScreenScheme.addEntity(issueTypeScreenSchemeEntity4);
+		
+		issueTypeScreenSchemeManager.addSchemeAssociation(project,issueTypeScreenScheme);
+		
+		ApplicationUser user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser(); 
+		SearchRequestService searchRequestService = ComponentAccessor.getComponent(SearchRequestService.class);
+		JiraServiceContext ctx = new JiraServiceContextImpl(user);
+		JqlQueryBuilder builder = JqlQueryBuilder.newBuilder();
+		builder.where().project(project.getName());
+		Query query = builder.buildQuery();
+		SearchRequest searchRequest = new SearchRequest(query);
+		searchRequest.setName("Filter for: " + project.getKey());
+		searchRequest.setOwner(user);
+		SearchRequest newSearchRequest = searchRequestService.createFilter(ctx,searchRequest,true);
+		Integer filterId = (int) (long) newSearchRequest.getId();
+		
+		//LOGGER.error("Standalone Project Templates::Creando tablero Kanban.");
+		try {
+			createBoard("Board for: " + project.getKey(), "kanban", filterId);
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+
+		SearchRequestManager searchRequestManager = ComponentAccessor.getComponent(SearchRequestManager.class);
+		Set<SharePermission> permissionsSet = new HashSet<SharePermission>(newSearchRequest.getPermissions().getPermissionSet());
+		SharePermission sharePermission = new SharePermissionImpl(newSearchRequest.getId(), ShareType.Name.PROJECT, Long.toString(project.getId()), null);
+		permissionsSet.add(sharePermission);
+		newSearchRequest.setPermissions(new SharePermissions(permissionsSet));
+		searchRequestManager.update(newSearchRequest);
+
+
+//		ProjectSearchRequestService projectSearchRequestService = ComponentAccessor.getComponent(ProjectSearchRequestService.class);
+//		projectSearchRequestService.associateSearchRequestsWithProject(user, project, newSearchRequest.getId());
+		
+		ConfigureResponse configureResponse = ConfigureResponse.create().setRedirect("/plugins/servlet/project-config/" + project.getKey() + "/summary");
+		return configureResponse;
+		
+	}
+	
+	
+	private void createBoard(String boardName, String boardType, int filterId) throws ResponseException, MalformedURLException, JSONException {
+	   //LOGGER.error("Creando tablero con nombre::" + boardName);
+	   String baseUrl = ComponentAccessor.getApplicationProperties().getString("jira.baseurl");
+	   //LOGGER.error("Creando tablero con nombre2::" + baseUrl);
+	   String hostName = new URL(baseUrl).getHost();
+	   String url = baseUrl + "/rest/agile/1.0/board";
+	   //LOGGER.error("Creando tablero en url::" + url);
+	   JSONObject body = new JSONObject();
+	   body.put("name", boardName);
+	   body.put("type", boardType);
+	   body.put("filterId", filterId);
+	   //LOGGER.error("Creando TrustedRequest" + hostName.toString());
+	   TrustedRequest trustedRequest = trustedRequestFactory.createTrustedRequest(TrustedRequest.MethodType.POST, url);
+	   //LOGGER.error("Creando TrustedRequest1");
+	   trustedRequest.addTrustedTokenAuthentication(hostName);
+	   //LOGGER.error("Creando TrustedRequest2");
+	   trustedRequest.setRequestBody(body.toString());
+	   //LOGGER.error("Creando TrustedRequest3");
+	   trustedRequest.addHeader("Content-Type", "application/json");
+	   //LOGGER.error("Creando TrustedRequest4");
+	   String response = trustedRequest.execute();
+	   //LOGGER.error("Creando tablero respuesta::" + response);
+	   
+	}
+
+}
