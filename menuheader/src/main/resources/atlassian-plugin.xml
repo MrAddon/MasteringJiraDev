@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2"> 
+  <plugin-info> 
+    <description>${project.description}</description>  
+    <version>${project.version}</version>  
+    <vendor name="${project.organization.name}" url="${project.organization.url}"/>  
+    <param name="plugin-icon">images/pluginIcon.png</param>  
+    <param name="plugin-logo">images/pluginLogo.png</param> 
+  </plugin-info>  
+  <!-- add our i18n resource -->  
+  <resource type="i18n" name="i18n" location="menuheader"/>  
+  <!-- add our web resources -->  
+  <web-resource key="menuheader-resources" name="menuheader Web Resources"> 
+    <dependency>com.atlassian.auiplugin:ajs</dependency>  
+    <resource type="download" name="menuheader.css" location="/css/menuheader.css"/>  
+    <resource type="download" name="menuheader.js" location="/js/menuheader.js"/>  
+    <resource type="download" name="images/" location="/images"/>  
+    <context>menuheader</context> 
+  </web-resource>  
+  <web-section name="mysection" i18n-name-key="mysection.name" key="mysection" location="client-sites-link" weight="1000"> 
+    <description key="mysection.description">The mysection Plugin</description>  
+    <label key="mysection.label"/> 
+  </web-section>  
+  <web-item name="Client Sites" i18n-name-key="client-sites.name" key="client-sites" section="system.top.navigation.bar" weight="1000"> 
+    <description key="client-sites.description">The Client Sites Plugin</description>  
+    <label key="client-sites.label"/>  
+    <link linkId="client-sites-link">someurl</link> 
+  </web-item>  
+  <web-item name="Google" i18n-name-key="google.name" key="google" section="client-sites-link/mysection" weight="1000">
+    <description key="google.description">The Google Plugin</description>  
+    <label key="google.label"></label>  
+    <link linkId="google-link">someurl2</link> 
+  </web-item>
+</atlassian-plugin>
