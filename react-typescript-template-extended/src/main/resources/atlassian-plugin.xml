@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    <param name="plugin-icon">images/pluginIcon.png</param>
+    <param name="plugin-logo">images/pluginLogo.png</param>
+  </plugin-info>
+
+  <!-- add our i18n resource -->
+  <resource type="i18n" name="i18n" location="i18n/hello-world"/>
+
+  <!-- Web Resources -->
+  <web-resource key="soy-templates" name="Soy Templates">
+    <resource type="soy" name="soyui" location="/templates/hello-world/templates.soy"/>
+  </web-resource>
+
+  <!-- web sections -->
+  <web-section key="hw-admin-section" name="com.example.helloworld.admin.section.name" i18n-name-key="com.example.helloworld.admin.section.name" location="admin_plugins_menu" weight="1000">
+    <description key="com.example.helloworld.admin.section.description"/>
+    <label key="com.example.helloworld.admin.section.label"/>
+  </web-section>
+
+  <!-- web items -->
+  <web-item key="admin-section-global-config" name="com.example.helloworld.global.config.name" i18n-name-key="com.example.helloworld.global.config.name" section="admin_plugins_menu/hw-admin-section" weight="1000">
+    <description key="com.example.helloworld.global.config.description"/>
+    <label key="com.example.helloworld.global.config.label"/>
+    <link linkId="hw-admin-section-global-config-link">/plugins/servlet/hello-world/config</link>
+  </web-item>
+
+  <!-- servlets -->
+  <servlet key="admin-section-global-config-servlet" name="com.example.helloworld.global.config.servlet.name" i18n-name-key="com.example.helloworld.global.config.servlet.name" class="com.example.helloworld.impl.servlets.GlobalConfigServlet">
+    <description key="com.example.helloworld.global.config.servlet.description"/>
+    <url-pattern>/hello-world/config</url-pattern>
+  </servlet>
+</atlassian-plugin>

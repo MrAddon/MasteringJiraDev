@@ -1,0 +1,23 @@
+{namespace templates.ui}
+
+/**
+ * This template is needed to draw the global config page.
+ */
+{template .globalConfig}
+    {webResourceManager_requireResource('com.example.helloworld:entrypoint-helloWorld')}
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="decorator" content="atl.admin">
+        <meta name="admin.active.section" content="admin_plugins_menu/hw-admin-section">
+        <meta name="admin.active.tab" content="dt-admin-section-global-config-link"/>
+        <title>HW - Global Config Page</title>
+      </head>
+      <body>
+        <div id="maincontainer">
+          <div id="container">
+          </div>
+        </div>
+      </body>
+    </html>
+{/template}
