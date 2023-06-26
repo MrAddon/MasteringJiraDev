@@ -29,7 +29,10 @@ pnpm watch
 
 Install some dependencies like
 
-\react-typescript-template>pnpm add -g @babel/core
+\react-typescript-template>pnpm i
+
+
+\react-typescript-template>pnpm add -D @babel/core
 
 
 \react-typescript-template>pnpm add -D @babel/plugin-proposal-object-rest-spread
